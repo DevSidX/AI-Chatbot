@@ -8,21 +8,65 @@
 }
 
 body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
     min-height: 100vh;
     background: linear-gradient(#EEEEFF, #C8C7FF);
 }
 
+#chatbot-toggler{
+    position: fixed;
+    bottom: 30px;
+    right: 35px;
+    border: none;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 50%;
+    background: #5350C4;
+    transition: all 0.2s ease;
+}
+
+body.show-chatbot #chatbot-toggler{
+    transform: rotate(90deg);
+}
+
+#chatbot-toggler span{
+    color: #e6e1e1;
+    position: absolute;
+}
+
+body.show-chatbot #chatbot-toggler span:first-child,
+#chatbot-toggler span:last-child{
+    opacity: 0;
+}
+
+body.show-chatbot #chatbot-toggler span:last-child{
+    opacity: 1;
+}
+
 .chatbot-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.2);
     width: 420px;
     background: #fff;
     overflow: hidden;
     border-radius: 15px;
+    opacity: 0;
+    transform-origin: bottom right;
+    pointer-events: none;
     box-shadow: 0 0 128px 0 rgba(0, 0, 0, 0.1),
-        0 32px 63px -48px rgba(0, 0, 0, 0.4);
-    position: relative;
+                0 32px 63px -48px rgba(0, 0, 0, 0.4);
+    transition: all 0.1s ease;
+}
+
+body.show-chatbot .chatbot-popup {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
 }
 
 .chat-header {
@@ -93,6 +137,8 @@ body {
     align-items: flex-start;
 }
 
+
+
 .chat-body .bot-message .bot-avatar {
     height: 35px;
     width: 35px;
@@ -119,7 +165,7 @@ body {
     background: #6c68e5;
     border-radius: 13px 13px 3px 13px;
     color: #f5f2f2;
-        line-height: 1.5;
+    line-height: 1.5;
 }
 
 .chat-body .bot-message.thinking .message-text {
@@ -179,6 +225,7 @@ body {
 
 .chat-footer .chat-form {
     display: flex;
+    position: relative;
     align-items: center;
     background: #fff;
     border-radius: 32px;
@@ -194,11 +241,19 @@ body {
     outline: none;
     height: 47px;
     width: 100%;
+    resize: none;
+    max-height: 180px;
+    white-space: pre-line;
     font-size: 0.95rem;
     padding: 14px 0 13px 18px;
     border-radius: inherit;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
 }
 
+.chat-form .message-input:hover{
+    scrollbar-color: #ccccf5 transparent;
+}
 .chat-form .chat-controls {
     display: flex;
     height: 47px;
@@ -235,4 +290,80 @@ body {
 
 .chat-form .chat-controls button:hover {
     background: #f1f1ff;
+}
+
+.chat-form .file-upload-wrapper{
+    height: 35px;
+    width: 35px;   
+    position: relative;
+}
+.chat-form .file-upload-wrapper :where(img , button){
+    position: absolute;
+}
+
+.chat-form .file-upload-wrapper img{
+    position: absolute;
+    display: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.chat-form .file-upload-wrapper img{
+    color: #ff0000;
+    background: #fff;
+}
+
+.chat-form .file-upload-wrapper :where(img , #file-cancel),
+.chat-form .file-upload-wrapper.file-uploaded #file-upload{
+    display: none;
+}
+
+.chat-form .file-upload-wrapper .file-uploaded img,
+.chat-form .file-upload-wrapper .file-uploaded:hover #file-cancel{
+    display: block;
+}
+
+em-emoji-picker{
+    position: absolute;
+    left: 50%;
+    top: -337px;
+    width: 100%;
+    max-width: 350px;
+    max-height: 330px;
+    visibility: hidden;
+    transform: translateX(-50%);
+}
+
+body.show-emoji-picker em-emoji-picker{
+    visibility: visible;
+}
+
+/* Responsive media query for mobile screens */
+@media (max-width: 520px){
+    #chatbot-toggler{
+        right: 20px;
+        bottom: 20px;
+    }
+    .chatbot-popup{
+        right: 0;
+        bottom: 0;
+        height: 100%;
+        border-radius: 0;
+        width: 100%;
+    }
+    .chatbot-popup .chat-header{
+        padding: 12px 15px;
+    }
+    .chat-body{
+        height: calc(90% - 55px);
+        padding: 25px 15px;
+    }
+    .chat-footer{
+        padding: 10px 15px 15px;
+    }
+    .chat-form .file-upload-wrapper .file-uploaded #file-cancel{
+        opacity: 0;
+    }
 }
