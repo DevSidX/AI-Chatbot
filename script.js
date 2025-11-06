@@ -28,7 +28,7 @@ const createMessageElement = (content, ...classes) => {
 
 const generateBotResponse = async (incomingMessageDiv) => {
     const messageElement = incomingMessageDiv.querySelector('.message-text');
-    
+
     chatHistory.push({
         role: "user",
         parts: [
@@ -36,7 +36,7 @@ const generateBotResponse = async (incomingMessageDiv) => {
             ...(userData.file.data ? [{ inline_data: userData.file }] : [])
         ]
     });
-    
+
     const parts = [{ text: userData.message }];
     if (userData.file.data && userData.file.mime_type) {
         parts.push({
@@ -51,11 +51,22 @@ const generateBotResponse = async (incomingMessageDiv) => {
         const response = await fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contents: [{ parts }] })
+            body: JSON.stringify({
+                contents: [
+                    {
+                        role: "user",
+                        parts
+                    }
+                ]
+            })
         });
+
         const data = await response.json();
+        console.log("Gemini full response:", data); // 
+
         const apiResponseText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response.";
-        
+
+
         messageElement.innerHTML = apiResponseText
             .replace(/^\s*\*\s*/gm, '')
             .replace(/\*\*(.*?)\*\*/g, '$1')
@@ -102,7 +113,7 @@ const handleOutgoingMessage = (e) => {
                 </div>
             </div>
         `, 'bot-message', 'thinking');
-        
+
         chatBody.appendChild(incomingMessageDiv);
         chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
         generateBotResponse(incomingMessageDiv);
@@ -183,11 +194,11 @@ closeChatbot.addEventListener("click", returnToHome);
 document.addEventListener('DOMContentLoaded', () => {
     const landingPage = document.querySelector('.landing-page');
     const chatbotPopup = document.querySelector('.chatbot-popup');
-    
+
     if (landingPage && chatbotPopup) {
         chatbotPopup.style.display = 'none';
         landingPage.style.display = 'flex';
-        
+
         document.getElementById('launch-chatbot').addEventListener('click', () => {
             landingPage.style.display = 'none';
             chatbotPopup.style.display = 'block';
