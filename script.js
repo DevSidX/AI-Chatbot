@@ -7,9 +7,6 @@ const fileCancelButton = document.querySelector("#file-cancel");
 const chatbotToggler = document.querySelector('#chatbot-toggler');
 const closeChatbot = document.querySelector("#close-chatbot");
 
-const API_KEY = "AIzaSyBHfForREVK0weQfFjDIbGt9j417hhtVhY";
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-
 const userData = {
     message: null,
     file: { data: null, mime_type: null }
@@ -29,61 +26,28 @@ const createMessageElement = (content, ...classes) => {
 const generateBotResponse = async (incomingMessageDiv) => {
     const messageElement = incomingMessageDiv.querySelector('.message-text');
 
-    chatHistory.push({
-        role: "user",
-        parts: [
-            { text: userData.message },
-            ...(userData.file.data ? [{ inline_data: userData.file }] : [])
-        ]
-    });
-
-    const parts = [{ text: userData.message }];
-    if (userData.file.data && userData.file.mime_type) {
-        parts.push({
-            inline_data: {
-                mime_type: userData.file.mime_type,
-                data: userData.file.data
-            }
-        });
-    }
-
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch("/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                contents: [
-                    {
-                        role: "user",
-                        parts
-                    }
-                ]
+                message: userData.message
             })
         });
 
         const data = await response.json();
-        console.log("Gemini full response:", data); // 
+        messageElement.innerHTML = data.reply;
 
-        const apiResponseText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response.";
-
-
-        messageElement.innerHTML = apiResponseText
-            .replace(/^\s*\*\s*/gm, '')
-            .replace(/\*\*(.*?)\*\*/g, '$1')
-            .replace(/\*(.*?)\*/g, '$1')
-            .trim();
-
-        chatHistory.push({ role: "model", parts: [{ text: apiResponseText }] });
     } catch (error) {
-        console.error("Bot response error:", error);
+        console.error(error);
         messageElement.innerHTML = "<i>Error getting response.</i>";
-        messageElement.style.color = "#ff0000";
+        messageElement.style.color = "red";
     } finally {
-        userData.file = { data: null, mime_type: null };
-        incomingMessageDiv.classList.remove('thinking');
+        incomingMessageDiv.classList.remove("thinking");
         chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
     }
 };
+
 
 const handleOutgoingMessage = (e) => {
     e.preventDefault();
