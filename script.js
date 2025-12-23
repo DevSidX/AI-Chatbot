@@ -7,8 +7,9 @@ const fileCancelButton = document.querySelector("#file-cancel");
 const chatbotToggler = document.querySelector('#chatbot-toggler');
 const closeChatbot = document.querySelector("#close-chatbot");
 
-const API_URL = "/api/chat";
-
+const API_KEY = "AIzaSyB3VAafdXhDo-2AHAPs6FUgh9vMOZnU04U";
+const API_URL =
+    `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
 
 const userData = {
