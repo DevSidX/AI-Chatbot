@@ -7,6 +7,10 @@ const fileCancelButton = document.querySelector("#file-cancel");
 const chatbotToggler = document.querySelector('#chatbot-toggler');
 const closeChatbot = document.querySelector("#close-chatbot");
 
+const API_URL = "/api/chat";
+
+
+
 const userData = {
     message: null,
     file: { data: null, mime_type: null }
@@ -26,28 +30,76 @@ const createMessageElement = (content, ...classes) => {
 const generateBotResponse = async (incomingMessageDiv) => {
     const messageElement = incomingMessageDiv.querySelector('.message-text');
 
+    chatHistory.push({
+        role: "user",
+        parts: [
+            { text: userData.message },
+            ...(userData.file.data ? [{ inline_data: userData.file }] : [])
+        ]
+    });
+
+    const parts = [{ text: userData.message }];
+    if (userData.file.data && userData.file.mime_type) {
+        parts.push({
+            inline_data: {
+                mime_type: userData.file.mime_type,
+                data: userData.file.data
+            }
+        });
+    }
+
     try {
-        const response = await fetch("/api/chat", {
+        const response = await fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                message: userData.message
+                contents: [
+                    {
+                        role: "user",
+                        parts: [
+                            {
+                                text: `
+                                    You are a helpful AI assistant.
+                                    Answer like ChatGPT:
+                                    - Be clear and concise
+                                    - Use short paragraphs
+                                    - Use bullet points when helpful
+                                    - Avoid long textbook explanations
+                                    - No markdown symbols like **, *, or backticks
+                                    - Give a direct answer first, then explanation if needed
+
+                                    Question: ${userData.message}`
+                            }
+                        ]
+                    }
+                ]
             })
+
         });
 
         const data = await response.json();
-        messageElement.innerHTML = data.reply;
+        console.log("Gemini full response:", data); // 
 
+        const apiResponseText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response.";
+
+
+        messageElement.innerHTML = apiResponseText
+            .replace(/^\s*\*\s*/gm, '')
+            .replace(/\*\*(.*?)\*\*/g, '$1')
+            .replace(/\*(.*?)\*/g, '$1')
+            .trim();
+
+        chatHistory.push({ role: "model", parts: [{ text: apiResponseText }] });
     } catch (error) {
-        console.error(error);
+        console.error("Bot response error:", error);
         messageElement.innerHTML = "<i>Error getting response.</i>";
-        messageElement.style.color = "red";
+        messageElement.style.color = "#ff0000";
     } finally {
-        incomingMessageDiv.classList.remove("thinking");
+        userData.file = { data: null, mime_type: null };
+        incomingMessageDiv.classList.remove('thinking');
         chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
     }
 };
-
 
 const handleOutgoingMessage = (e) => {
     e.preventDefault();
